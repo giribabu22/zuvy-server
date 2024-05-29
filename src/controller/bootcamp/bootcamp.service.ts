@@ -10,7 +10,6 @@ import {
   batches,
   users,
   batchEnrollments,
-  classesGoogleMeetLink,
   bootcampTracking,
   bootcampType,
   zuvySessions
@@ -893,8 +892,8 @@ export class BootcampService {
 
         const classes = await db
           .select()
-          .from(classesGoogleMeetLink)
-          .where(sql`${classesGoogleMeetLink.batchId} = ${batchId}`);
+          .from(zuvySessions)
+          .where(sql`${zuvySessions.batchId} = ${batchId}`);
 
         const completedClasses = [];
         const ongoingClasses = [];
