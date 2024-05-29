@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import {
   userTokens,
-  classesGoogleMeetLink,
+  zuvySessions,
 } from '../../drizzle/schema';
 import { db } from '../db/index';
 import { eq, sql, count, inArray, isNull } from 'drizzle-orm';
@@ -24,7 +24,7 @@ export class ScheduleService {
   async getEventDetails(): Promise<any> {
     try {
       // Retrieve all classes with null s3link
-      const classesWithNullS3Link = await db.select().from(classesGoogleMeetLink).where(isNull(classesGoogleMeetLink.s3link));
+      const classesWithNullS3Link = await db.select().from(zuvySessions).where(isNull(zuvySessions.s3link));
 
       // Iterate through each class
       for (const classData of classesWithNullS3Link) {
@@ -47,11 +47,11 @@ export class ScheduleService {
         const calendar = google.calendar({ version: 'v3', auth: auth2Client });
 
         // Check if meetingid exists and s3link is null
-        if (classData.meetingid) {
+        if (classData.meetingId) {
           // Retrieve event details
           const eventDetails = await calendar.events.get({
             calendarId: 'primary',
-            eventId: classData.meetingid,
+            eventId: classData.meetingId,
           });
 
           // Check if event has attachments
@@ -62,9 +62,9 @@ export class ScheduleService {
               if (attachment.mimeType === 'video/mp4') {
                 // Update s3link
                 await db
-                  .update(classesGoogleMeetLink)
+                  .update(zuvySessions)
                   .set({ ...classData, s3link: attachment.fileUrl })
-                  .where(eq(classesGoogleMeetLink.id, classData.id))
+                  .where(eq(zuvySessions.id, classData.id))
                   .returning();
               }
             }
